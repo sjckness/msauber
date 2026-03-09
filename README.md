@@ -46,7 +46,8 @@ source install/setup.bash
 ros2 launch msauber msauber.launch.py
 ```
 ## Controller
-To activate the walk controller, after the simulation is started and the robot is spawned, open a new terminal in ~/dev_ws and use:
+To activate the keyboard controller, after the simulation is started and the robot is spawned, open a new terminal in ~/dev_ws and use:
+
 ```bash 
 ros2 run msauber keyboard_driver
 ```
