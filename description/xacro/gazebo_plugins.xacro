@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sauber">
+
+<!-- Gazebo references -->
+
+  <ros2_control name="msauber_control" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <!-- Wheels: effort command only on rear axle -->
+    <joint name="$(arg robot_name)_left_rear_wheel_joint">
+      <command_interface name="effort"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="$(arg robot_name)_right_rear_wheel_joint">
+      <command_interface name="effort"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <!-- Front wheels are passive (no command interface) -->
+    <joint name="$(arg robot_name)_left_front_wheel_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="$(arg robot_name)_right_front_wheel_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- Steering: position command -->
+    <joint name="$(arg robot_name)_left_steering_hinge_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="$(arg robot_name)_right_steering_hinge_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+  </ros2_control> 
+
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>${pkg_share}/config/effort_control_config.yaml</parameters>  
+    </plugin>
+  </gazebo>
+
+
+  <gazebo reference="$(arg robot_name)_chassis">
+    <mu1 value="0.0"/>
+    <mu2 value="0.0"/>
+    <kp  value="10000000.0" />
+    <kd  value="1.0" />
+    <material>Gazebo/$(arg robot_skin)</material>
+  </gazebo>
+
+  <gazebo reference="$(arg robot_name)_left_rear_wheel">
+    <mu1 value="1.0"/>
+    <mu2 value="1.0"/>
+    <kp  value="10000000.0" />
+    <kd  value="1.0" />
+    <fdir1 value="1 0 0"/>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="$(arg robot_name)_right_rear_wheel">
+    <mu1 value="1.0"/>
+    <mu2 value="1.0"/>
+    <kp  value="10000000.0" />
+    <kd  value="1.0" />
+    <fdir1 value="1 0 0"/>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="$(arg robot_name)_left_front_wheel">
+    <mu1 value="1.0"/>
+    <mu2 value="1.0"/>
+    <kp  value="10000000.0" />
+    <kd  value="1.0" />
+    <fdir1 value="0 0 1"/>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+  <gazebo reference="$(arg robot_name)_right_front_wheel">
+    <mu1 value="1.0"/>
+    <mu2 value="1.0"/>
+    <kp  value="10000000.0" />
+    <kd  value="1.0" />
+    <fdir1 value="0 0 1"/>
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+</robot>

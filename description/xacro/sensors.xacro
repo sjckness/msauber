@@ -1,0 +1,93 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sauber">
+
+<!-- Add Hokuyo laser scanner -->
+
+  <link name="$(arg robot_name)_laser">
+    <inertial>
+      <xacro:hokuyo_inertial_params />
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="${mesh_dir}/hokuyo.stl"/>
+        <material name="grey" />
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="$(arg robot_name)_hokuyo_joint" type="fixed">
+    <origin xyz="0.125 0.0 0.155" rpy="0 0 0"/>
+    <parent link="$(arg robot_name)_chassis" />
+    <child link="$(arg robot_name)_laser" />
+    <axis xyz="0 0 1" />
+  </joint>
+
+
+  <!-- camera class (spawn parameters) -->
+  <link name="$(arg robot_name)_link">
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0.25" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.033 0.175 0.030"/>
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0.025" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.033 0.175 0.030"/>
+      </geometry>
+      <material name="red"/>
+    </visual>
+  </link>
+
+  <joint name="$(arg robot_name)_joint" type="fixed">
+    <origin xyz="0.390 0 0.025" rpy="0 0 0"/>
+    <parent link="$(arg robot_name)_chassis"/>
+    <child link="$(arg robot_name)_link"/>
+    <axis xyz="0 0 1" />
+    <!-- <limit lower="0.0" upper="0.0" effort="0.0" velocity="0.0" /> -->
+  </joint>
+
+
+  <!-- camera lenses -->
+  <link name="$(arg robot_name)_camera_link">
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="-2.5 0 1.75" rpy="0 .57 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+  <link name="$(arg robot_name)_right_link">
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="-2.5 0 1.75" rpy="0 .57 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <joint name="$(arg robot_name)_left_joint" type="fixed">
+    <origin xyz="-2.5 0 1.75" rpy="0 .57 0"/>
+    <parent link="$(arg robot_name)_link"/>
+    <child link="$(arg robot_name)_camera_link"/>
+    <axis xyz="0 0 1" />
+  </joint>
+  <joint name="$(arg robot_name)_right_joint" type="fixed">
+    <origin xyz="0 -0.06 0.025" rpy="0 0 0"/>
+    <parent link="$(arg robot_name)_link"/>
+    <child link="$(arg robot_name)_right_link"/>
+    <axis xyz="0 0 1" />
+  </joint>
+
+</robot>

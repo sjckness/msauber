@@ -9,14 +9,13 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import Float64MultiArray
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 class KeyboardDriveSteer(Node):
     """
-    W: throttle up (0..1) -> effort 0..+max_effort
+    W: throttle up (0..1) -> effort 0..+max_effort (solo ruote posteriori)
     S: throttle down (0..-1) -> effort 0..-max_effort
-    A/D: steer angle target -> published as JointTrajectory to a trajectory controller (2 joints same angle)
+    A/D: steer angle target -> posizione per entrambi i giunti sterzo (Float64MultiArray)
 
     Uses key-repeat to detect "held down".
     """
@@ -27,10 +26,14 @@ class KeyboardDriveSteer(Node):
         # --- Parameters (edit or override via --ros-args -p ...) ---
         # NB: must match the JointGroupEffortController name in effort_control_config.yaml
         self.declare_parameter('effort_topic', '/wheel_group_effort_controller/commands')
+        # order must match YAML joints list
+        self.declare_parameter('wheel_joint_order', [
+            'left_rear', 'right_rear'
+        ])
         self.declare_parameter('max_effort', 10000.0)
 
-        self.declare_parameter('steer_topic', '/wheel_group_trajectory_controller/joint_trajectory')
-        self.declare_parameter('steer_joint_names', ['front_right_steer', 'front_left_steer'])
+        self.declare_parameter('steer_topic', '/steering_position_controller/commands')
+        self.declare_parameter('steer_joint_order', ['left', 'right'])
 
         self.declare_parameter('throttle_ramp_per_sec', 1.2)     # 0..1 per second (quanto velocemente arriva al 100%)
         self.declare_parameter('throttle_decay_per_sec', 2.0)    # torna verso 0 quando non premi nulla
@@ -46,9 +49,10 @@ class KeyboardDriveSteer(Node):
         # Read params
         self.effort_topic = self.get_parameter('effort_topic').value
         self.max_effort = float(self.get_parameter('max_effort').value)
+        self.wheel_joint_order = list(self.get_parameter('wheel_joint_order').value)
 
         self.steer_topic = self.get_parameter('steer_topic').value
-        self.steer_joint_names = list(self.get_parameter('steer_joint_names').value)
+        self.steer_joint_order = list(self.get_parameter('steer_joint_order').value)
 
         self.throttle_ramp_per_sec = float(self.get_parameter('throttle_ramp_per_sec').value)
         self.throttle_decay_per_sec = float(self.get_parameter('throttle_decay_per_sec').value)
@@ -64,7 +68,7 @@ class KeyboardDriveSteer(Node):
 
         # Publishers
         self.eff_pub = self.create_publisher(Float64MultiArray, self.effort_topic, 10)
-        self.traj_pub = self.create_publisher(JointTrajectory, self.steer_topic, 10)
+        self.steer_pub = self.create_publisher(Float64MultiArray, self.steer_topic, 10)
 
         # State
         self.throttle = 0.0   # [-1..1]
@@ -97,7 +101,7 @@ class KeyboardDriveSteer(Node):
             "  D = steer right\n"
             "CTRL+C to quit\n"
             f"Effort topic: {self.effort_topic}\n"
-            f"Steer traj topic: {self.steer_topic} joints={self.steer_joint_names}"
+            f"Steer topic: {self.steer_topic} order={self.steer_joint_order}"
         )
 
     def destroy_node(self):
@@ -174,9 +178,9 @@ class KeyboardDriveSteer(Node):
         # Map throttle -> effort
         effort = self.throttle * self.max_effort
 
-        # Publish effort to 2 joints (same torque)
+        # Publish effort to rear axle (same torque on both)
         eff_msg = Float64MultiArray()
-        eff_msg.data = [float(effort), float(effort)]
+        eff_msg.data = [float(effort)] * 2
         self.eff_pub.publish(eff_msg)
 
         # --- Steering update ---
@@ -200,17 +204,10 @@ class KeyboardDriveSteer(Node):
         if abs(self.steer) < 1e-3 and not (a or d):
             self.steer = 0.0
 
-        # Publish trajectory (same angle for both joints)
-        traj = JointTrajectory()
-        traj.joint_names = self.steer_joint_names
-
-        pt = JointTrajectoryPoint()
-        pt.positions = [float(self.steer), float(self.steer)]
-        pt.time_from_start.sec = int(self.traj_time)
-        pt.time_from_start.nanosec = int((self.traj_time - int(self.traj_time)) * 1e9)
-
-        traj.points = [pt]
-        self.traj_pub.publish(traj)
+        # Publish steering as Float64MultiArray (left, right)
+        steer_msg = Float64MultiArray()
+        steer_msg.data = [float(self.steer), float(self.steer)]
+        self.steer_pub.publish(steer_msg)
 
 
 def main():

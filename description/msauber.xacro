@@ -1,7 +1,16 @@
 <?xml version="1.0" ?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="car">
-   
-    <xacro:include filename="/home/andreas/dev_ws/src/msauber/description/xacro/variables.xacro" />
-    <xacro:include filename="/home/andreas/dev_ws/src/msauber/description/xacro/mesh.xacro" />
-    <xacro:include filename="/home/andreas/dev_ws/src/msauber/description/xacro/effort_control.xacro" />
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sauber">
+    
+    <!-- Package resources -->
+    <xacro:arg name="pkg_share" default="$(find msauber)" />
+    <xacro:property name="pkg_share" value="$(arg pkg_share)"/>
+    <xacro:arg name="robot_name" default="sauber" />
+    <xacro:arg name="robot_skin" default="Red" />
+    <xacro:property name="mesh_dir" value="${pkg_share}/description/meshes"/>
+
+    <xacro:include filename="${pkg_share}/description/xacro/macros.xacro" />
+    <xacro:include filename="${pkg_share}/description/xacro/core.xacro" />
+    <xacro:include filename="${pkg_share}/description/xacro/sensors.xacro" />
+    <xacro:include filename="${pkg_share}/description/xacro/gazebo_plugins.xacro" />
+
 </robot>

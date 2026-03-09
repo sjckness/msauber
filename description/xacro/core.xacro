@@ -1,0 +1,178 @@
+<?xml version="1.0" ?>
+  <robot xmlns:xacro="http://www.ros.org/wiki/xacro"  name="sauber">
+
+  <!-- Add chassis and it's inertia link -->
+
+  <link name="$(arg robot_name)_base_link"/>
+
+  <link name="$(arg robot_name)_chassis">
+    <visual>
+      <xacro:chassis_geometry/>
+      <material name="red" />
+    </visual>
+  </link>
+
+  <joint name="$(arg robot_name)_base_link_joint" type="fixed">
+    <origin xyz="0 0 0.05" rpy="0 0 0" />
+    <parent link="$(arg robot_name)_base_link" />
+    <child link="$(arg robot_name)_chassis" />
+  </joint>
+
+  <link name="$(arg robot_name)_chassis_inertia">
+    <inertial>
+      <xacro:chassis_inertial_params />
+    </inertial>
+  </link>
+
+  <joint name="$(arg robot_name)_chassis_inertia_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="0 0 0" />
+    <parent link="$(arg robot_name)_chassis" />
+    <child link="$(arg robot_name)_chassis_inertia" />
+  </joint>
+
+  <!-- Add the left rear wheel with its joints and tranmissions -->
+
+  <link name="$(arg robot_name)_left_rear_wheel">
+    <inertial>
+      <xacro:left_wheels_inertial_params />
+    </inertial>
+    <visual>
+      <xacro:left_rear_wheel_geometry />
+      <material name="black" />
+    </visual>
+    <collision>
+      <xacro:left_wheels_collision_geometry />
+    </collision>
+  </link>
+
+  <joint name="$(arg robot_name)_left_rear_wheel_joint" type="continuous">
+    <origin xyz="0 0.1 0" rpy="1.5708 0 0" />
+    <parent link="$(arg robot_name)_chassis" />
+    <child link="$(arg robot_name)_left_rear_wheel" />
+    <axis xyz="0 0 -1" />
+    <limit effort="100" velocity="100" />
+  </joint>
+
+  <xacro:wheel_transmission name="$(arg robot_name)_left_rear_wheel" />
+
+  <!-- Add the right rear wheel with its joints and tranmissions -->
+
+  <link name="$(arg robot_name)_right_rear_wheel">
+    <inertial>
+      <xacro:right_wheels_inertial_params />
+    </inertial>
+    <visual>
+      <xacro:right_rear_wheel_geometry />
+      <material name="black" />
+    </visual>
+    <collision>
+      <xacro:right_wheels_collision_geometry />
+    </collision>
+  </link>
+
+  <joint name="$(arg robot_name)_right_rear_wheel_joint" type="continuous">
+    <origin xyz="0 -0.1 0" rpy="1.5708 0 0" />
+    <parent link="$(arg robot_name)_chassis" />
+    <child link="$(arg robot_name)_right_rear_wheel" />
+    <axis xyz="0 0 -1" />
+    <limit effort="100" velocity="100" />
+  </joint>
+
+  <xacro:wheel_transmission name="$(arg robot_name)_right_rear_wheel" />
+
+  <!-- Add the left steering hinge with its joints and tranmissions -->
+
+  <link name="$(arg robot_name)_left_steering_hinge">
+    <inertial>
+      <xacro:steering_hinge_inertial_params />
+    </inertial>
+    <visual>
+      <xacro:left_steering_hinge_geometry />
+      <material name="grey" />
+    </visual>
+  </link>
+
+  <joint name="$(arg robot_name)_left_steering_hinge_joint" type="revolute">
+    <origin xyz="0.325 0.1 0" rpy="0 1.5708 0" />
+    <parent link="$(arg robot_name)_chassis" />
+    <child link="$(arg robot_name)_left_steering_hinge" />
+    <axis xyz="-1 0 0" />
+    <limit lower="-1.0" upper="1.0" effort="10" velocity="100" />
+  </joint>
+
+  <xacro:steering_hinge_transmission name="$(arg robot_name)_left_steering_hinge" />
+
+  <!-- Add the right steering hinge with its joints and tranmissions -->
+
+  <link name="$(arg robot_name)_right_steering_hinge">
+    <inertial>
+      <xacro:steering_hinge_inertial_params />
+    </inertial>
+    <visual>
+      <xacro:right_steering_hinge_geometry />
+      <material name="grey" />
+    </visual>
+  </link>
+
+  <joint name="$(arg robot_name)_right_steering_hinge_joint" type="revolute">
+    <origin xyz="0.325 -0.1 0" rpy="0 1.5708 0" />
+    <parent link="$(arg robot_name)_chassis" />
+    <child link="$(arg robot_name)_right_steering_hinge" />
+    <axis xyz="-1 0 0" />
+    <limit lower="-1.0" upper="1.0" effort="10" velocity="100" />
+  </joint>
+
+  <xacro:steering_hinge_transmission name="$(arg robot_name)_right_steering_hinge" />
+
+  <!-- Add the left front wheel with its joints and tranmissions -->
+
+  <link name="$(arg robot_name)_left_front_wheel">
+    <inertial>
+      <xacro:left_wheels_inertial_params />
+    </inertial>
+    <visual>
+      <xacro:left_front_wheel_geometry />
+      <material name="black" />
+    </visual>
+    <collision>
+      <xacro:left_wheels_collision_geometry />
+    </collision>
+  </link>
+
+  <joint name="$(arg robot_name)_left_front_wheel_joint" type="continuous">
+    <origin xyz="0 0 0" rpy="1.5708 0 0" />
+    <parent link="$(arg robot_name)_left_steering_hinge" />
+    <child link="$(arg robot_name)_left_front_wheel" />
+    <axis xyz="0 0 -1" />
+    <limit effort="100" velocity="100" />
+  </joint>
+
+  <xacro:wheel_transmission name="$(arg robot_name)_left_front_wheel" />
+
+  <!-- Add the left front wheel with its joints and tranmissions -->
+
+  <link name="$(arg robot_name)_right_front_wheel">
+    <inertial>
+      <xacro:right_wheels_inertial_params />
+    </inertial>
+    <visual>
+      <xacro:right_front_wheel_geometry />
+      <material name="black" />
+    </visual>
+    <collision>
+      <xacro:right_wheels_collision_geometry />
+    </collision>
+  </link>
+
+  <joint name="$(arg robot_name)_right_front_wheel_joint" type="continuous">
+    <origin xyz="0 0 0" rpy="1.5708 0 0" />
+    <parent link="$(arg robot_name)_right_steering_hinge" />
+    <child link="$(arg robot_name)_right_front_wheel" />
+    <axis xyz="0 0 -1" />
+    <limit effort="100" velocity="100"/>
+  </joint>
+
+  <xacro:wheel_transmission name="$(arg robot_name)_right_front_wheel" />
+
+
+</robot>
