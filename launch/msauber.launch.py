@@ -47,11 +47,11 @@ def generate_launch_description():
     world_arg = DeclareLaunchArgument(
         'world',
         default_value=TextSubstitution(text=world_name),
-        description='World name (without .sdf) located in kumi/worlds'
+        description='World name (without .sdf) located in msauber/worlds'
     )
 
     world_file = PathJoinSubstitution([
-        FindPackageShare('kumi'),
+        FindPackageShare('msauber'),
         'worlds',
         LaunchConfiguration('world')
     ])
@@ -99,6 +99,21 @@ def generate_launch_description():
         executable='create',
         output='screen',
         arguments=['-string', robot_desc,
+                   '-x', '0.0',
+                   '-y', '0.0',
+                   '-z', '5',     #spawn at .5 meters from the ground
+                   '-R', '0.0',
+                   '-P', '0.0',
+                   '-Y', '3.14159',
+                   '-name', 'msauber',
+                   '-allow_renaming', 'false'],
+    )
+
+    gz_spawn_entity_track = Node(
+        package='ros_gz_sim',
+        executable='create',
+        output='screen',
+        arguments=['-string', robot_desc,
                    '-x', '280.0',
                    '-y', '-135.0',
                    '-z', '5',     #spawn at .5 meters from the ground
@@ -129,14 +144,39 @@ def generate_launch_description():
         output='screen'
     )
 
+    # ackerman controller for spin and stear
+    load_ackerman_controller = ExecuteProcess(
+        cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
+             'ackermann_steering_controller'],
+        output='screen'
+    )
+
+    twist_bridge = Node(
+        package='msauber',
+        executable='teleop_twist_bridge',
+        name='teleop_twist_bridge',
+        output='screen'
+    )
+
+    teleop = Node(
+        package='teleop_twist_keyboard',
+        executable='teleop_twist_keyboard',
+        name='teleop_keyboard',
+        output='screen',
+        prefix='xterm -e'
+    )
+
     # Timers to give Gazebo time to open and the world to load before spawning the robot.
     delayed_spawn_and_controllers = TimerAction(
         period=LaunchConfiguration('world_load_delay'),
         actions=[
             gz_spawn_entity,
             load_joint_state_broadcaster,
-            load_wheel_effort_controller,
-            load_steering_position_controller
+            load_ackerman_controller,
+            twist_bridge,
+            teleop
+            #load_wheel_effort_controller,
+            #load_steering_position_controller
         ],
     )
 

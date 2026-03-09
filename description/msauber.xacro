@@ -11,6 +11,6 @@
     <xacro:include filename="${pkg_share}/description/xacro/macros.xacro" />
     <xacro:include filename="${pkg_share}/description/xacro/core.xacro" />
     <xacro:include filename="${pkg_share}/description/xacro/sensors.xacro" />
-    <xacro:include filename="${pkg_share}/description/xacro/gazebo_plugins.xacro" />
+    <xacro:include filename="${pkg_share}/description/xacro/gazebo_plugins_acker.xacro" />
 
 </robot>

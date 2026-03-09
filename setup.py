@@ -42,6 +42,7 @@ setup(
         'console_scripts': [
             'trottle = msauber.controllers.trottle:main',
             'keyboard_driver = msauber.controllers.keyboard_driver:main',
+            'teleop_twist_bridge = msauber.bridges.teleop_twist_bridge:main',
         ],
     },
 )

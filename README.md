@@ -46,7 +46,8 @@ source install/setup.bash
 ros2 launch msauber msauber.launch.py
 ```
 ## Controller
-To activate the keyboard controller, after the simulation is started and the robot is spawned, open a new terminal in ~/dev_ws and use:
+### Easy controller 
+To activate the easy keyboard controller, after the simulation is started and the robot is spawned, open a new terminal in ~/dev_ws and use:
 
 ```bash 
 ros2 run msauber keyboard_driver
@@ -54,6 +55,15 @@ ros2 run msauber keyboard_driver
 Then you can use WASD for moving the car. You have to select the terminal where you launch th econtroller when you press the WASD keys 
 otherwise it doesn't work.
 Next step is to directly add the commands in gazebo...
+
+### Ackerman controller
+The ackerman controller is a ROS2 type of controller that allowes you to choose velocity and stering angle. In this version is used with the node [teleop_twist_keyboard] from the namesake package. It take imput from the keyboard and the car moves.
+
+To use it just run:
+```bash 
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
+```
+It works better with US keyboards, istead of WASD you should use IJML.
 
 
 ## worlds
@@ -63,7 +73,7 @@ ros2 launch msauber msauber.launch.py world:=world_name
 ```
 Worlds available in the package kumi:
 - my_empty 
-- sonoma (beta)
+- sonoma (alpha)
 
 ## Commands
 to kill gazebo:
