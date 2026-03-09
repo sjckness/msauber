@@ -10,6 +10,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     AppendEnvironmentVariable,
     TimerAction,
+    OpaqueFunction,
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -21,7 +22,7 @@ def generate_launch_description():
 
     world_name = 'my_empty'
 
-    use_sim_time = LaunchConfiguration('use_sim_time', default=True)
+    use_sim_time = LaunchConfiguration('use_sim_time', default='true')
 
     gz_start_delay = DeclareLaunchArgument(
         'gz_start_delay',
@@ -43,6 +44,12 @@ def generate_launch_description():
         AppendEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=os.path.join(pkg_share, 'description'), separator=':'),
         AppendEnvironmentVariable(name='GZ_SIM_RESOURCE_PATH', value=os.path.join(pkg_share, 'description', 'mesh'), separator=':'),
     ]
+
+    use_sim_time_arg = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='true',
+        description='Use Gazebo simulation time'
+    )
 
     world_arg = DeclareLaunchArgument(
         'world',
@@ -86,43 +93,42 @@ def generate_launch_description():
     robot_desc = doc.toprettyxml(indent='  ')
 
     params = {'robot_description': robot_desc}
+
+    # spawn coordinates chosen per world name; defaults to my_empty
+    spawn_poses = {
+        'my_empty': {'x': '0.0', 'y': '0.0', 'z': '5', 'yaw': '3.14159'},
+        'sonoma': {'x': '280.0', 'y': '-135.0', 'z': '5', 'yaw': '-0.78'},
+    }
+
+    def make_spawn_entity(context):
+        world = LaunchConfiguration('world').perform(context)
+        pose = spawn_poses.get(world, spawn_poses['my_empty'])
+        return [Node(
+            package='ros_gz_sim',
+            executable='create',
+            output='screen',
+            arguments=[
+                '-string', robot_desc,
+                '-x', pose['x'],
+                '-y', pose['y'],
+                '-z', pose['z'],
+                '-R', '0.0',
+                '-P', '0.0',
+                '-Y', pose['yaw'],
+                '-name', 'msauber',
+                '-allow_renaming', 'false'
+            ],
+        )]
+
+    spawn_entity = OpaqueFunction(function=make_spawn_entity)
     
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output='screen',
-        parameters=[params]
+        parameters=[params, {'use_sim_time': use_sim_time}]
     )
 
-    gz_spawn_entity = Node(
-        package='ros_gz_sim',
-        executable='create',
-        output='screen',
-        arguments=['-string', robot_desc,
-                   '-x', '0.0',
-                   '-y', '0.0',
-                   '-z', '5',     #spawn at .5 meters from the ground
-                   '-R', '0.0',
-                   '-P', '0.0',
-                   '-Y', '3.14159',
-                   '-name', 'msauber',
-                   '-allow_renaming', 'false'],
-    )
-
-    gz_spawn_entity_track = Node(
-        package='ros_gz_sim',
-        executable='create',
-        output='screen',
-        arguments=['-string', robot_desc,
-                   '-x', '280.0',
-                   '-y', '-135.0',
-                   '-z', '5',     #spawn at .5 meters from the ground
-                   '-R', '0.0',
-                   '-P', '0.0',
-                   '-Y', '3.14159',
-                   '-name', 'msauber',
-                   '-allow_renaming', 'false'],
-    )
     #joint state broadcaster for feedback on joints positions (no sensors used)
     load_joint_state_broadcaster= ExecuteProcess(
         cmd=['ros2', 'control', 'load_controller', '--set-state', 'active',
@@ -155,7 +161,8 @@ def generate_launch_description():
         package='msauber',
         executable='teleop_twist_bridge',
         name='teleop_twist_bridge',
-        output='screen'
+        output='screen',
+        parameters=[{'use_sim_time': use_sim_time}]
     )
 
     teleop = Node(
@@ -163,14 +170,15 @@ def generate_launch_description():
         executable='teleop_twist_keyboard',
         name='teleop_keyboard',
         output='screen',
-        prefix='xterm -e'
+        prefix='xterm -e',
+        parameters=[{'use_sim_time': use_sim_time}]
     )
 
     # Timers to give Gazebo time to open and the world to load before spawning the robot.
     delayed_spawn_and_controllers = TimerAction(
         period=LaunchConfiguration('world_load_delay'),
         actions=[
-            gz_spawn_entity,
+            spawn_entity,
             load_joint_state_broadcaster,
             load_ackerman_controller,
             twist_bridge,
@@ -190,6 +198,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         *gz_env,
+        use_sim_time_arg,
         world_arg,
         gz_start_delay,
         world_load_delay,
