@@ -63,6 +63,7 @@ ros2 launch msauber msauber.launch.py world:=world_name
 ```
 Worlds available in the package kumi:
 - my_empty 
+- sonoma (beta)
 
 ## Commands
 to kill gazebo:
